@@ -5,6 +5,7 @@ import AuthProvider from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
+import SuppliersPage from './pages/SuppliersPage';
 import theme from './theme'; 
 
 function App() {
@@ -26,6 +27,13 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route path="/suppliers" element={
+              <PrivateRoute>
+                <SuppliersPage /> 
+              </PrivateRoute>
+            } 
+            />
+
           </Routes>
         </Container>
       </Router>

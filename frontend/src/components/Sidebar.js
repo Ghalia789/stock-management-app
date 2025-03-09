@@ -1,6 +1,7 @@
 import React from 'react';
 import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider } from '@mui/material';
 import { Dashboard as DashboardIcon, Inventory, ShoppingCart, BarChart, Settings } from '@mui/icons-material';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Sidebar = ({ open }) => {
@@ -9,6 +10,7 @@ const Sidebar = ({ open }) => {
 
     const menuItems = [
         { text: 'Overview', icon: <DashboardIcon />, path: '/dashboard' },
+        { text: 'Suppliers', icon: <GroupsIcon />, path: '/suppliers' },
         { text: 'Products', icon: <Inventory />, path: '/products' },
         { text: 'Orders', icon: <ShoppingCart />, path: '/orders' },
         { text: 'Reports', icon: <BarChart />, path: '/reports' },
