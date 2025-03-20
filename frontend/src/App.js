@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
 import SuppliersPage from './pages/SuppliersPage';
+import ProductsPage from './pages/ProductsPage';
 import theme from './theme'; 
 
 function App() {
@@ -33,7 +34,14 @@ function App() {
               </PrivateRoute>
             } 
             />
-
+            <Route 
+                path="/products" 
+                element={
+                  <PrivateRoute>
+                    <ProductsPage />
+                  </PrivateRoute>
+                } 
+              />
           </Routes>
         </Container>
       </Router>
