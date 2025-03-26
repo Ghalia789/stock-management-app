@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextField, Button, Container, Box, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import axios from 'axios';
 
@@ -10,6 +10,14 @@ const AddProduct = ({ onProductAdded }) => {
         stock: '',
         description: ''
     });
+    const [suppliers, setSuppliers] = useState([]);
+    const [supplierId, setSupplierId] = useState('');
+    useEffect(() => {
+            fetch('http://localhost:5000/api/suppliers')
+                .then(res => res.json())
+                .then(data => setSuppliers(data))
+                .catch(error => console.error('Error:', error));
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,7 +30,8 @@ const AddProduct = ({ onProductAdded }) => {
         const dataToSend = {
             ...formData,
             price: formData.price ? Number(formData.price) : 0,
-            stock: formData.stock ? Number(formData.stock) : 0
+            stock: formData.stock ? Number(formData.stock) : 0,
+            supplierId
         };
         
         try {
@@ -32,9 +41,11 @@ const AddProduct = ({ onProductAdded }) => {
             
             // Axios automatically throws errors for non-2xx responses,
             // so if we get here, the request was successful
+            console.log("Response:", response.data); // Debugging log
             const newProduct = response.data;
             onProductAdded(newProduct);
             setFormData({ name: '', category: 'Electronics', price: '', stock: '', description: '' });
+            setSupplierId('');
         } catch (error) {
             // Axios provides better error details
             if (error.response) {
@@ -101,7 +112,22 @@ const AddProduct = ({ onProductAdded }) => {
                         required 
                         sx={{ mb: 2 }} 
                     />
-                    
+                    {/* Supplier Selection */}
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                        <InputLabel>Supplier</InputLabel>
+                        <Select
+                            value={supplierId}
+                            onChange={(e) => setSupplierId(e.target.value)}
+                            required
+                        >
+                            <MenuItem value="">Select Supplier</MenuItem>
+                            {suppliers.map((supplier) => (
+                                <MenuItem key={supplier._id} value={supplier._id}>
+                                    {supplier.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                     <TextField 
                         fullWidth 
                         label="Description" 

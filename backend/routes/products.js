@@ -1,12 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const Supplier = require('../models/Supplier');
 
 // Create a new product
 router.post('/', async (req, res) => {
     try {
-        const { name, stock, price, category, description} = req.body;
-        const newProduct = new Product({ name, stock, price, category, description});
+        const { name, stock, price, category, description, supplierId} = req.body;
+        // Validate supplier
+        if (supplierId) {
+            const supplierExists = await Supplier.findById(supplierId);
+            if (!supplierExists) {
+                return res.status(404).json({ message: 'Supplier not found' });
+            }
+        }
+        const newProduct = new Product({ name, stock, price, category, description, supplier: supplierId});
         await newProduct.save();
         res.status(201).json(newProduct);
     } catch (error) {
