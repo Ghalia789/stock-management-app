@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
 import SuppliersPage from './pages/SuppliersPage';
 import ProductsPage from './pages/ProductsPage';
+import OrdersPage from './pages/OrdersPage';
+
 import theme from './theme'; 
 
 function App() {
@@ -39,6 +41,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <ProductsPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/orders" 
+                element={
+                  <PrivateRoute>
+                    <OrdersPage />
                   </PrivateRoute>
                 } 
               />

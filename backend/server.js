@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const supplierRoutes = require('./routes/suppliers');
 const productRoutes = require('./routes/products');
+const orderRoutes = require('./routes/orders');
 
 
 
@@ -32,6 +33,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/orders', productRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
