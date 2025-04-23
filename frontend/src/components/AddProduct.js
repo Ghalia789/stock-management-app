@@ -86,6 +86,7 @@ const AddProduct = ({ onProductAdded }) => {
                             required
                         >
                             <MenuItem value="Electronics">Electronics</MenuItem>
+                            <MenuItem value="Furniture">Furniture</MenuItem>
                             <MenuItem value="Food">Food</MenuItem>
                             <MenuItem value="Other">Other</MenuItem>
                         </Select>

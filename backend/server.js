@@ -33,7 +33,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/orders', productRoutes);
+app.use('/api/orders', orderRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

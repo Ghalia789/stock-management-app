@@ -23,7 +23,7 @@ const orderSchema = new mongoose.Schema({
     supplier: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Supplier',
-        required: false // Not all orders need a supplier
+        required: true // Not all orders need a supplier
     },
     status: {
         type: String,
@@ -57,6 +57,22 @@ orderSchema.pre('save', function (next) {
     this.totalCost = this.products.reduce((sum, item) => sum + (item.unitPrice * item.quantityOrdered), 0);
     next();
 });
-
+orderSchema.methods.toPrintFormat = function() {
+    return {
+        orderId: this._id,
+        orderDate: this.orderDate.toLocaleDateString(),
+        status: this.status,
+        supplier: this.supplier, // This will be populated
+        products: this.products.map(item => ({
+            name: item.productId?.name || 'Product not found', // Product will be populated
+            quantity: item.quantityOrdered,
+            unitPrice: item.unitPrice,
+            total: item.quantityOrdered * item.unitPrice
+        })),
+        subtotal: this.totalCost,
+        orderedBy: this.orderedBy,
+        expectedDelivery: this.expectedDeliveryDate?.toLocaleDateString() || 'Not specified'
+    };
+};
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;
