@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const Supplier = require('../models/Supplier');
 
@@ -29,6 +30,32 @@ router.get('/', async (req, res) => {
         res.json(products);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching products', error });
+    }
+});
+// Get products by supplier ID
+router.get('/by-supplier', async (req, res) => {
+    try {
+        const supplierId = req.query.supplier;
+
+        if (!supplierId) {
+            return res.status(400).json({ message: 'Supplier ID is required' });
+        }
+
+        // Convert supplierId to ObjectId safely
+        let objectIdSupplier;
+        try {
+            objectIdSupplier = new mongoose.Types.ObjectId(supplierId);
+        } catch (error) {
+            return res.status(400).json({ message: 'Invalid Supplier ID format' });
+        }
+
+        // Find products with the matching supplier ObjectId
+        const products = await Product.find({ supplier: objectIdSupplier });
+
+        res.json(products);
+    } catch (error) {
+        console.error('Error fetching products by supplier:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -129,5 +156,7 @@ router.patch('/stock/bulk', async (req, res) => {
         res.status(500).json({ message: 'Error updating stocks', error });
     }
 });
+
+
 
 module.exports = router;

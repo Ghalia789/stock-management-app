@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { 
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-    Paper, Button, TextField, Box, Dialog, DialogTitle, DialogContent, 
-    DialogActions, IconButton, Select, MenuItem, FormControl, InputLabel, 
-    Typography, Collapse 
+import {
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter,
+    Paper, Button, TextField, Box, Dialog, DialogTitle, DialogContent,
+    DialogActions, IconButton, Select, MenuItem, FormControl, InputLabel,
+    Typography, Collapse, Tooltip, TablePagination
 } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import AddProduct from '../components/AddProduct';
@@ -23,6 +23,10 @@ const ProductList = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
     const [expandedProductId, setExpandedProductId] = useState(null);
+
+    // Pagination states
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
         fetch('http://localhost:5000/api/products')
@@ -50,6 +54,17 @@ const ProductList = () => {
         (filterCategory === "All" || product.category === filterCategory)
     );
 
+    // Handle page change
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    // Handle rows per page change
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
     return (
         <Box>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -76,16 +91,25 @@ const ProductList = () => {
                         <MenuItem value="Other">Other</MenuItem>
                     </Select>
                 </FormControl>
-
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AddShoppingCartIcon />}
-                    onClick={() => setOpenAddModal(true)}
-                    sx={{ mb: 2 }}
-                >
-                    Add Product
-                </Button>
+                <Tooltip title="Add Product">
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setOpenAddModal(true)}
+                        sx={{
+                            mb: 2,
+                            width: 48,
+                            height: 48,
+                            minWidth: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: 0
+                        }}
+                    >
+                        <AddShoppingCartIcon />
+                    </Button>
+                </Tooltip>
             </Box>
 
             <TableContainer component={Paper}>
@@ -102,37 +126,43 @@ const ProductList = () => {
                     </TableHead>
                     <TableBody>
                         {filteredProducts.length > 0 ? (
-                            filteredProducts.map((product) => (
+                            filteredProducts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product) => (
                                 <React.Fragment key={product._id}>
                                     {/* Main row */}
                                     <TableRow>
                                         <TableCell sx={{ width: "50px", padding: "8px" }}>
-                                            <IconButton 
-                                                onClick={() => handleToggleExpand(product._id)}
-                                                size="small"
-                                            >
-                                                {expandedProductId === product._id ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                                            </IconButton>
+                                            <Tooltip title="Details">
+                                                <IconButton
+                                                    onClick={() => handleToggleExpand(product._id)}
+                                                    size="small"
+                                                >
+                                                    {expandedProductId === product._id ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                                </IconButton>
+                                            </Tooltip>
                                         </TableCell>
                                         <TableCell>{product.name}</TableCell>
                                         <TableCell>{product.category}</TableCell>
                                         <TableCell>${product.price}</TableCell>
                                         <TableCell>
-                                            <Typography sx={{ 
-                                                fontWeight: "bold", 
-                                                color: product.stock < 5 ? "red" : product.stock < 10 ? "orange" : "green" 
+                                            <Typography sx={{
+                                                fontWeight: "bold",
+                                                color: product.stock < 10 ? "red" : product.stock < 20 ? "orange" : "green"
                                             }}>
                                                 {product.stock} {product.stock < 5 && "⚠️"}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
                                             <Box sx={{ display: "flex", gap: 1 }}>
-                                                <IconButton onClick={() => setSelectedProduct(product) || setOpenEditModal(true)} color="warning">
-                                                    <EditIcon />
-                                                </IconButton>
-                                                <IconButton onClick={() => setConfirmDelete(product)} color="error">
-                                                    <DeleteIcon />
-                                                </IconButton>
+                                                <Tooltip title="Edit Product">
+                                                    <IconButton onClick={() => setSelectedProduct(product) || setOpenEditModal(true)} color="warning">
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Delete Product">
+                                                    <IconButton onClick={() => setConfirmDelete(product)} color="error">
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Tooltip>
                                             </Box>
                                         </TableCell>
                                     </TableRow>
@@ -156,6 +186,30 @@ const ProductList = () => {
                             </TableRow>
                         )}
                     </TableBody>
+                    
+                    <TableFooter>
+            <TableRow>
+                <TableCell colSpan={6} style={{ padding: 0 }}>
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25]}
+                        component="div"
+                        count={filteredProducts.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        sx={{
+                            width: '100%',
+                            margin: 0,
+                            '& .MuiTablePagination-toolbar': {
+                                paddingLeft: 2,
+                                paddingRight: 1
+                            }
+                        }}
+                    />
+                </TableCell>
+            </TableRow>
+        </TableFooter>
                 </Table>
             </TableContainer>
 

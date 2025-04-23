@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Box, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import { 
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter, 
+    Paper, Button, TextField, Box, Dialog, DialogTitle, DialogContent, 
+    DialogActions, IconButton, TablePagination 
+} from '@mui/material';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import AddSupplier from '../components/AddSupplier';
 import UpdateSupplier from '../components/UpdateSupplier';
@@ -13,6 +17,10 @@ const SupplierList = () => {
     const [openEditModal, setOpenEditModal] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
+    
+    // Pagination states
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
         fetch('http://localhost:5000/api/suppliers')
@@ -57,9 +65,20 @@ const SupplierList = () => {
         supplier.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // Handle page change
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    // Handle rows per page change
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
     return (
         <Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "right", mb: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <TextField
                     label="Search by Name"
                     variant="outlined"
@@ -103,7 +122,9 @@ const SupplierList = () => {
                     </TableHead>
                     <TableBody>
                         {filteredSuppliers.length > 0 ? (
-                            filteredSuppliers.map((supplier) => (
+                            filteredSuppliers
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((supplier) => (
                                 <TableRow key={supplier._id}>
                                     <TableCell>{supplier.name}</TableCell>
                                     <TableCell>{supplier.contactInfo}</TableCell>
@@ -128,6 +149,30 @@ const SupplierList = () => {
                             </TableRow>
                         )}
                     </TableBody>
+                    
+                    <TableFooter>
+                        <TableRow>
+                            <TableCell colSpan={6} style={{ padding: 0 }}>
+                                <TablePagination
+                                    rowsPerPageOptions={[5, 10, 25]}
+                                    component="div"
+                                    count={filteredSuppliers.length}
+                                    rowsPerPage={rowsPerPage}
+                                    page={page}
+                                    onPageChange={handleChangePage}
+                                    onRowsPerPageChange={handleChangeRowsPerPage}
+                                    sx={{
+                                        width: '100%',
+                                        margin: 0,
+                                        '& .MuiTablePagination-toolbar': {
+                                            paddingLeft: 2,
+                                            paddingRight: 1
+                                        }
+                                    }}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    </TableFooter>
                 </Table>
             </TableContainer>
 
@@ -147,7 +192,6 @@ const SupplierList = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
         </Box>
     );
 };

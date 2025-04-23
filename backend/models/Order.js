@@ -1,16 +1,29 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
-    // Core fields from your checklist
-    productId: {
+    products: [
+        {
+            productId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Product',
+                required: true
+            },
+            quantityOrdered: {
+                type: Number,
+                required: true,
+                min: 1
+            },
+            unitPrice: {
+                type: Number,
+                min: 0,
+                required: true
+            }
+        }
+    ],
+    supplier: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-        required: true
-    },
-    quantityOrdered: {
-        type: Number,
-        required: true,
-        min: 1
+        ref: 'Supplier',
+        required: true // Not all orders need a supplier
     },
     status: {
         type: String,
@@ -18,8 +31,6 @@ const orderSchema = new mongoose.Schema({
         enum: ['Pending', 'Ordered', 'Received'],
         default: 'Pending'
     },
-
-    // Additional useful fields
     orderDate: {
         type: Date,
         default: Date.now
@@ -31,31 +42,37 @@ const orderSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-
-    // For tracking automatic ordering for low-stock items
     isAutoOrder: {
         type: Boolean,
         default: false
-    },
-
-    // Financial tracking
-    unitPrice: {
-        type: Number,
-        min: 0
     },
     totalCost: {
         type: Number,
         min: 0
     }
-});
+}, { timestamps: true });
 
-// Calculate total cost before saving
+// Automatically calculate total order cost before saving
 orderSchema.pre('save', function (next) {
-    if (this.unitPrice && this.quantityOrdered) {
-        this.totalCost = this.unitPrice * this.quantityOrdered;
-    }
+    this.totalCost = this.products.reduce((sum, item) => sum + (item.unitPrice * item.quantityOrdered), 0);
     next();
 });
-
+orderSchema.methods.toPrintFormat = function() {
+    return {
+        orderId: this._id,
+        orderDate: this.orderDate.toLocaleDateString(),
+        status: this.status,
+        supplier: this.supplier, // This will be populated
+        products: this.products.map(item => ({
+            name: item.productId?.name || 'Product not found', // Product will be populated
+            quantity: item.quantityOrdered,
+            unitPrice: item.unitPrice,
+            total: item.quantityOrdered * item.unitPrice
+        })),
+        subtotal: this.totalCost,
+        orderedBy: this.orderedBy,
+        expectedDelivery: this.expectedDeliveryDate?.toLocaleDateString() || 'Not specified'
+    };
+};
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;
