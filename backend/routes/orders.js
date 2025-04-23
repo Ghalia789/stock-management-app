@@ -182,7 +182,6 @@ const updateBulkStock = async (products) => {
 };
 
 
-// Function to print order
 router.get('/:id/pdf', async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
@@ -192,54 +191,199 @@ router.get('/:id/pdf', async (req, res) => {
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        console.log("📦 PDF route triggered for order:", req.params.id);
+
+        console.log('Order products:', order.products); // Debug log
 
         const PDFDocument = require('pdfkit');
-        const doc = new PDFDocument();
+        const doc = new PDFDocument({ size: 'A4', margin: 50 });
         
         // Set response headers
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=order_${order._id}.pdf`);
+        res.setHeader('Content-Disposition', `inline; filename=Purchase_Order_${order._id.toString().slice(-6)}.pdf`);
         
-        // Pipe PDF to response
         doc.pipe(res);
+
+        // ====================
+        // HEADER SECTION
+        // ====================
+        // Company Logo
+        doc.image('public/images/marketly_logo.png', 50, 45, { width: 50 })
+           .fillColor('#333333')
+           .fontSize(20)
+           .text('Marketly', 110, 57)
+           .fontSize(10)
+           .text('123 Your Business Address', 200, 65, { align: 'right' })
+           .text('City, State ZIP | Phone: (123) 456-7890', 200, 80, { align: 'right' })
+           .moveDown();
+
+        // Title
+        doc.fontSize(18)
+           .fillColor('#0066cc')
+           .text('PURCHASE ORDER', 50, 120)
+           .fontSize(12)
+           .fillColor('#333333')
+           .text(`PO Number: ${order._id.toString().slice(-6).toUpperCase()}`, 400, 120)
+           .text(`Date: ${new Date(order.orderDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 400, 135);
+
+        // ====================
+        // BUYER/SUPPLIER INFO
+        // ====================
+        const buyerInfo = {
+            x: 50,
+            y: 170,
+            width: 250,
+            height: 80
+        };
+
+        const supplierInfo = {
+            x: 300,
+            y: 170,
+            width: 250,
+            height: 80
+        };
+
+        // Buyer Box (YOUR COMPANY)
+        doc.rect(buyerInfo.x, buyerInfo.y, buyerInfo.width, buyerInfo.height)
+           .stroke('#0066cc')
+           .fontSize(11)
+           .fillColor('#0066cc')
+           .text('BUYER:', buyerInfo.x + 10, buyerInfo.y + 10)
+           .fillColor('#000000')
+           .font('Helvetica-Bold')
+           .text('Marketly', buyerInfo.x + 10, buyerInfo.y + 25)
+           .font('Helvetica')
+           .text('123 Your Business Address', buyerInfo.x + 10, buyerInfo.y + 40)
+           .text('City, State ZIP', buyerInfo.x + 10, buyerInfo.y + 55)
+           .text('Tel: (123) 456-7890', buyerInfo.x + 10, buyerInfo.y + 70);
+
+        // Supplier Box
+        doc.rect(supplierInfo.x, supplierInfo.y, supplierInfo.width, supplierInfo.height)
+           .stroke('#0066cc')
+           .fontSize(11)
+           .fillColor('#0066cc')
+           .text('SUPPLIER:', supplierInfo.x + 10, supplierInfo.y + 10)
+           .fillColor('#000000')
+           .font('Helvetica-Bold')
+           .text(order.supplier.name, supplierInfo.x + 10, supplierInfo.y + 25)
+           .font('Helvetica')
+           .text(order.supplier.address || 'Address not specified', supplierInfo.x + 10, supplierInfo.y + 40)
+           .text(`Tel: ${order.supplier.phone || 'N/A'}`, supplierInfo.x + 10, supplierInfo.y + 55)
+           .text(`Email: ${order.supplier.email || 'N/A'}`, supplierInfo.x + 10, supplierInfo.y + 70);
+
+        // ====================
+        // PRODUCTS TABLE (FIXED VERSION)
+        // ====================
+        const tableTop = 270;
+
+        // 1. Draw table header
+        doc.save()
+           .rect(50, tableTop, 500, 20)
+           .fill('#0066cc')
+           .restore();
+
+        doc.font('Helvetica-Bold')
+           .fontSize(10)
+           .fillColor('#ffffff')
+           .text('#', 55, tableTop + 5)
+           .text('DESCRIPTION', 80, tableTop + 5)
+           .text('SKU', 300, tableTop + 5)
+           .text('QTY', 370, tableTop + 5)
+           .text('UNIT PRICE', 420, tableTop + 5)
+           .text('TOTAL', 480, tableTop + 5);
+
+        // 2. Draw product rows
+        let y = tableTop + 20;
         
-        // Build PDF content
-        doc.fontSize(20).text(`Order #${order._id}`, { align: 'center' });
-        doc.moveDown();
-        
-        doc.fontSize(12).text(`Date: ${order.orderDate.toLocaleDateString()}`);
-        doc.text(`Status: ${order.status}`);
-        doc.text(`Supplier: ${order.supplier.name}`);
-        doc.moveDown();
-        
-        // Products table
-        const tableTop = doc.y;
-        let tableY = tableTop;
-        
-        doc.font('Helvetica-Bold');
-        doc.text('Product', 50, tableY);
-        doc.text('Qty', 250, tableY);
-        doc.text('Price', 300, tableY);
-        doc.text('Total', 350, tableY);
-        doc.font('Helvetica');
-        
-        tableY += 25;
-        
-        order.products.forEach(item => {
-            doc.text(item.productId.name, 50, tableY);
-            doc.text(item.quantityOrdered.toString(), 250, tableY);
-            doc.text(`$${item.unitPrice.toFixed(2)}`, 300, tableY);
-            doc.text(`$${(item.quantityOrdered * item.unitPrice).toFixed(2)}`, 350, tableY);
-            tableY += 20;
-        });
-        
-        // Total
-        tableY += 10;
-        doc.font('Helvetica-Bold');
-        doc.text('Subtotal:', 300, tableY);
-        doc.text(`$${order.totalCost.toFixed(2)}`, 350, tableY);
-        
+        if (order.products && order.products.length > 0) {
+            order.products.forEach((item, index) => {
+                const rowY = y + (index * 20);
+                
+                // Draw row background
+                doc.save()
+                   .rect(50, rowY, 500, 20)
+                   .fill(index % 2 === 0 ? '#f5f5f5' : '#ffffff')
+                   .restore();
+                
+                // Draw product text
+                doc.font('Helvetica')
+                   .fontSize(10)
+                   .fillColor('#000000')
+                   .text((index + 1).toString(), 55, rowY + 5)
+                   .text(item.productId?.name || 'Product Not Found', 80, rowY + 5)
+                   .text(item.quantityOrdered.toString(), 370, rowY + 5)
+                   .text(`$${item.unitPrice.toFixed(2)}`, 420, rowY + 5)
+                   .text(`$${(item.quantityOrdered * item.unitPrice).toFixed(2)}`, 480, rowY + 5);
+            });
+
+            // Draw table border
+            doc.save()
+               .rect(50, tableTop, 500, 20 + (order.products.length * 20))
+               .stroke('#cccccc')
+               .restore();
+
+            // ====================
+            // TOTALS SECTION (FIXED)
+            // ====================
+            const totalsY = y + (order.products.length * 20) + 20;
+            
+            doc.save()
+               .rect(400, totalsY - 10, 150, 100)
+               .fill('#ffffff')
+               .stroke('#cccccc')
+               .restore();
+            
+            doc.font('Helvetica-Bold')
+               .fontSize(10)
+               .fillColor('#000000')
+               .text('SUBTOTAL:', 420, totalsY)
+               .text(`$${order.totalCost.toFixed(2)}`, 480, totalsY)
+               .text('TAX (0%):', 420, totalsY + 20)
+               .text('$0.00', 480, totalsY + 20)
+               .text('SHIPPING:', 420, totalsY + 40)
+               .text('$0.00', 480, totalsY + 40)
+               .fontSize(12)
+               .text('TOTAL DUE:', 420, totalsY + 60)
+               .text(`$${order.totalCost.toFixed(2)}`, 480, totalsY + 60);
+
+            // ====================
+            // FOOTER & SIGNATURES
+            // ====================
+            const footerY = totalsY + 100;
+            
+            doc.font('Helvetica')
+               .fontSize(9)
+               .fillColor('#000000')
+               .text('Payment Terms: Net 30 days', 50, footerY)
+               .text('Delivery Date: _________________________', 50, footerY + 15)
+               .text('Shipping Method: _____________________', 50, footerY + 30);
+
+            // Signature Lines
+            doc.fontSize(10)
+               .text('Authorized By:', 300, footerY)
+               .moveTo(300, footerY + 20)
+               .lineTo(450, footerY + 20)
+               .stroke()
+               .text('Name/Signature/Date', 300, footerY + 25)
+               
+               .text('Supplier Acknowledgment:', 300, footerY + 50)
+               .moveTo(300, footerY + 70)
+               .lineTo(450, footerY + 70)
+               .stroke()
+               .text('Name/Signature/Date', 300, footerY + 75);
+        } else {
+            // Handle case with no products
+            doc.font('Helvetica')
+               .fontSize(12)
+               .fillColor('#ff0000')
+               .text('NO PRODUCTS IN THIS ORDER', 50, y);
+        }
+
+        // Footer Note
+        doc.fontSize(8)
+           .fillColor('#666666')
+           .text('This is an automatically generated purchase order. Please contact accounts payable for any questions.', 
+                50, 750, { align: 'center', width: 500 });
+
         doc.end();
         
     } catch (error) {
