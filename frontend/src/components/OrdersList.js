@@ -22,7 +22,7 @@ const OrdersList = () => {
     const [refreshOrders, setRefreshOrders] = useState(false);
     //pagination
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10); 
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
         fetch('http://localhost:5000/api/orders/')
@@ -47,7 +47,7 @@ const OrdersList = () => {
                 },
                 body: JSON.stringify({ orderId, status: newStatus })
             });
-    
+
             if (response.ok) {
                 const updatedOrders = orders.map(order =>
                     order._id === orderId ? { ...order, status: newStatus } : order
@@ -60,23 +60,23 @@ const OrdersList = () => {
             console.error('Error updating order:', error);
         }
     };
-    
-    
+
+
 
     const filteredOrders = orders
-    .filter(order =>
-        order.supplier?.name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        (filterStatus === "All" || order.status === filterStatus)
-    )
-    .sort((a, b) => {
-        const dateA = new Date(a.orderDate);
-        const dateB = new Date(b.orderDate);
-        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-    });
+        .filter(order =>
+            order.supplier?.name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            (filterStatus === "All" || order.status === filterStatus)
+        )
+        .sort((a, b) => {
+            const dateA = new Date(a.orderDate);
+            const dateB = new Date(b.orderDate);
+            return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        });
     // Paginate the orders
-// Pagination logic
-const startIndex = page * rowsPerPage; // Determine the starting index based on the current page
-const paginatedOrders = filteredOrders.slice(startIndex, startIndex + rowsPerPage); // Get the slice of orders for the current page
+    // Pagination logic
+    const startIndex = page * rowsPerPage; // Determine the starting index based on the current page
+    const paginatedOrders = filteredOrders.slice(startIndex, startIndex + rowsPerPage); // Get the slice of orders for the current page
 
     return (
         <Box>
@@ -137,12 +137,12 @@ const paginatedOrders = filteredOrders.slice(startIndex, startIndex + rowsPerPag
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                    {paginatedOrders.length > 0 ? (
+                        {paginatedOrders.length > 0 ? (
                             paginatedOrders.map((order) => (
                                 <React.Fragment key={order._id}>
                                     <TableRow>
                                         <TableCell sx={{ width: "50px", padding: "8px" }}>
-                                            <Tooltip title="Details"> 
+                                            <Tooltip title="Details">
                                                 <IconButton
                                                     onClick={() => handleToggleExpand(order._id)}
                                                     size="small"
@@ -154,34 +154,34 @@ const paginatedOrders = filteredOrders.slice(startIndex, startIndex + rowsPerPag
                                         <TableCell>{order.supplier?.name}</TableCell>
                                         <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>                                        <TableCell>{order.status}</TableCell>
                                         <TableCell>
-    {order.status === 'Pending' && (
-        <Button
-            variant="contained"
-            color="warning"
-            startIcon={<CheckCircleIcon />}
-            onClick={() => handleUpdateOrderStatus(order._id, 'Ordered')}
-        >
-            Mark as Ordered
-        </Button>
-    )}
+                                            {order.status === 'Pending' && (
+                                                <Button
+                                                    variant="contained"
+                                                    color="warning"
+                                                    startIcon={<CheckCircleIcon />}
+                                                    onClick={() => handleUpdateOrderStatus(order._id, 'Ordered')}
+                                                >
+                                                    Mark as Ordered
+                                                </Button>
+                                            )}
 
-    {order.status === 'Ordered' && (
-        <Button
-            variant="contained"
-            color="success"
-            startIcon={<CheckCircleIcon />}
-            onClick={() => handleUpdateOrderStatus(order._id, 'Received')}
-        >
-            Mark as Received
-        </Button>
-    )}
+                                            {order.status === 'Ordered' && (
+                                                <Button
+                                                    variant="contained"
+                                                    color="success"
+                                                    startIcon={<CheckCircleIcon />}
+                                                    onClick={() => handleUpdateOrderStatus(order._id, 'Received')}
+                                                >
+                                                    Mark as Received
+                                                </Button>
+                                            )}
 
-    {order.status === 'Received' && (
-        <Button variant="outlined" disabled>
-            Received
-        </Button>
-    )}
-</TableCell>
+                                            {order.status === 'Received' && (
+                                                <Button variant="outlined" disabled>
+                                                    Received
+                                                </Button>
+                                            )}
+                                        </TableCell>
 
                                         <TableCell>
                                             <DownloadOrderPdfButton orderId={order._id} />
@@ -216,20 +216,20 @@ const paginatedOrders = filteredOrders.slice(startIndex, startIndex + rowsPerPag
                         )}
                     </TableBody>
                     <TableFooter>
-    <TableRow>
-        <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            count={filteredOrders.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={(event, newPage) => setPage(newPage)}
-            onRowsPerPageChange={(event) => {
-                setRowsPerPage(parseInt(event.target.value, 10));
-                setPage(0); // Reset to first page
-            }}
-        />
-    </TableRow>
-</TableFooter>
+                        <TableRow>
+                            <TablePagination
+                                rowsPerPageOptions={[5, 10, 25]}
+                                count={filteredOrders.length}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                onPageChange={(event, newPage) => setPage(newPage)}
+                                onRowsPerPageChange={(event) => {
+                                    setRowsPerPage(parseInt(event.target.value, 10));
+                                    setPage(0); // Reset to first page
+                                }}
+                            />
+                        </TableRow>
+                    </TableFooter>
                 </Table>
             </TableContainer>
 
