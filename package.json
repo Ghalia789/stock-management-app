@@ -3,7 +3,19 @@
     "concurrently": "^9.1.2"
   },
   "scripts": {
-      "dev": "concurrently \"cd backend && node server.js\" \"cd frontend && npm start\""
-    }
-  
+    "dev": "concurrently \"cd backend && node server.js\" \"cd frontend && npm start\""
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@heroicons/react": "^2.2.0",
+    "@mui/material": "^5.17.1",
+    "axios": "^1.8.4",
+    "bootstrap": "^5.3.5",
+    "chart.js": "^3.9.1",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.9",
+    "react-chartjs-2": "^4.3.1",
+    "react-dom": "^18.3.1"
+  }
 }
