@@ -157,6 +157,25 @@ router.patch('/stock/bulk', async (req, res) => {
     }
 });
 
+// Function to automatically check and flag low-stock products
+const checkLowStockProducts = async () => {
+    try {
+        // Find all products where stock is below lowStockThreshold
+        const lowStockProducts = await Product.find({
+            $expr: { $lt: ["$stock", "$lowStockThreshold"] }
+        });
+        
+        // Here you could trigger notifications or other actions
+        
+        return lowStockProducts;
+    } catch (error) {
+        console.error('Error checking low-stock products:', error);
+        throw error;
+    }
+};
 
 
-module.exports = router;
+module.exports = {
+    router: router,
+    checkLowStockProducts: checkLowStockProducts
+};
