@@ -139,9 +139,9 @@ const DashboardPage = () => {
 
   // Format currency to Tunisian Dinar
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('fr-TN', {
+    return new Intl.NumberFormat('us-US', {
       style: 'currency',
-      currency: 'TND'
+      currency: 'USD'
     }).format(value);
   };
 
@@ -275,7 +275,7 @@ const DashboardPage = () => {
                     Inventory Value
                   </Typography>
                   <Typography variant="h3" sx={{ mt: 2, fontWeight: 'bold' }}>
-                    {inventoryValue ? formatCurrency(inventoryValue.totalValue) : '0.000 TND'}
+                    {inventoryValue ? formatCurrency(inventoryValue.totalValue) : '0.000 USD'}
                   </Typography>
                 </CardContent>
               </Card>
@@ -387,10 +387,10 @@ const DashboardPage = () => {
                 <ResponsiveContainer width="100%" height={300}>
                   <ScatterChart>
                     <CartesianGrid />
-                    <XAxis type="number" dataKey="price" name="Price (TND)" unit=" TND" />
-                    <YAxis type="number" dataKey="quantity" name="Quantity" />
+                    <XAxis type="number" dataKey="price" name="Price (USD)" unit=" USD" />
+                    <YAxis type="number" dataKey="stock" name="Quantity" />
                     <Tooltip formatter={(value, name) => {
-                      return name === "Price (TND)" ? formatCurrency(value) : value;
+                      return name === "Price (USD)" ? formatCurrency(value) : value;
                     }} />
                     <Legend />
                     <Scatter name="Products" data={generatePriceQuantityData()} fill="#8884d8">
@@ -415,7 +415,7 @@ const DashboardPage = () => {
                     <PolarGrid />
                     <PolarAngleAxis dataKey="category" />
                     <PolarRadiusAxis />
-                    <Radar name="Quantity" dataKey="quantity" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                    <Radar name="Quantity" dataKey="stock" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
                     <Legend />
                     <Tooltip formatter={(value, name) => [value, name]} />
                   </RadarChart>

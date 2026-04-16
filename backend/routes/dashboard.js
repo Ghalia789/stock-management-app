@@ -23,7 +23,7 @@ router.get('/stock-overview', async (req, res) => {
 router.get('/inventory-value', async (req, res) => {
     try {
         const products = await Product.find();
-        const totalValue = products.reduce((acc, item) => acc + item.price * item.quantity, 0);
+        const totalValue = products.reduce((acc, item) => acc + item.price * item.stock, 0);
 
         res.json({ totalValue });
     } catch (err) {
@@ -63,9 +63,9 @@ router.get('/inventory-report', async (req, res) => {
 
         const report = products.map(product => ({
             name: product.name,
-            quantity: product.quantity,
+            quantity: product.stock,
             price: product.price,
-            totalValue: product.quantity * product.price
+            totalValue: product.stock * product.price
         }));
 
         res.json({ report });
